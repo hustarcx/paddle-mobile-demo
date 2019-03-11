@@ -1,4 +1,4 @@
-package com.baidu.paddle.modeloader
+package com.baidu.paddle.models
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -12,10 +12,12 @@ import org.jetbrains.anko.info
 
 
 /**
+ * 描述一个模型的 预处理, 加载, 以及预测等特性, 仅作为示例.
+ *
  * Created by xiebaiyuan on 2018/7/18.
  */
 
-abstract class ModelLoader : IModelLoader, AnkoLogger {
+abstract class Model : IModel, AnkoLogger {
     var predictImageTime: Long = -1
     var isbusy = false
     var timeList: MutableList<Long> = ArrayList()

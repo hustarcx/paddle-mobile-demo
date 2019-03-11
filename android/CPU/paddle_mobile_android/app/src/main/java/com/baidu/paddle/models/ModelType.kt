@@ -1,4 +1,4 @@
-package com.baidu.paddle.modeloader
+package com.baidu.paddle.models
 
 
 /**

@@ -1,4 +1,4 @@
-package com.baidu.paddle.modeloader
+package com.baidu.paddle.models
 
 import android.graphics.Bitmap
 import android.os.Environment
@@ -13,7 +13,7 @@ import java.io.File
  *
  * Created by xiebaiyuan on 2018/7/18.
  */
-class MobileNetModelLoaderImpl : ModelLoader() {
+class MobileNetModelImpl : Model() {
 
     /* b g r
      mean_value: [103.94,116.78,123.68]

@@ -1,4 +1,4 @@
-package com.baidu.paddle.modeloader
+package com.baidu.paddle.models
 
 import android.graphics.Bitmap
 import android.support.v7.widget.AppCompatImageView
@@ -8,20 +8,21 @@ import android.support.v7.widget.AppCompatImageView
  * Created by xiebaiyuan on 2018/7/18.
  */
 
-interface IModelLoader {
+interface IModel {
+
     fun load()
 
     fun clear()
+
+    fun predictImage(inputBuf: FloatArray): FloatArray?
+
+    fun predictImage(bitmap: Bitmap): FloatArray?
 
     fun getInputSize(): Int
 
     fun getScaledMatrix(bitmap: Bitmap, desWidth: Int, desHeight: Int): FloatArray
 
-    fun predictImage(inputBuf: FloatArray): FloatArray?
-
     fun mixResult(showView: AppCompatImageView, predicted: Pair<FloatArray, Bitmap>)
-
-    fun predictImage(bitmap: Bitmap): FloatArray?
 
     fun setThreadCount(mThreadCounts: Int)
 

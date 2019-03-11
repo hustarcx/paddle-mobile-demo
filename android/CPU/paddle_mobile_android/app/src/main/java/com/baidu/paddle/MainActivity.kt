@@ -32,9 +32,9 @@ import android.widget.Toast
 import com.afollestad.materialdialogs.MaterialDialog
 import com.baidu.paddle.data.banana
 import com.baidu.paddle.data.tempImage
-import com.baidu.paddle.modeloader.LoaderFactory
-import com.baidu.paddle.modeloader.ModelLoader
-import com.baidu.paddle.modeloader.ModelType
+import com.baidu.paddle.models.Model
+import com.baidu.paddle.models.ModelFactory
+import com.baidu.paddle.models.ModelType
 import com.baidu.paddle.utils.FileUtils
 import com.baidu.paddle.utils.PermissionUtils
 import io.reactivex.Observable
@@ -48,11 +48,17 @@ import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.info
 import java.io.File
 
-
+/**
+ * 用于DEMO的界面, 以及创建 Model的描述类,与PaddleMobile交互无关,
+ *
+ * 直接关注 XxxModelImpl即可.
+ *
+ * XxxModelImpl 用于描述一个模型的 输入预处理, 模型加载 及执行预测等
+ */
 @SuppressLint("SetTextI18n")
 class MainActivity : Activity(), AnkoLogger {
 
-    private lateinit var mModelLoader: ModelLoader
+    private lateinit var mModel: Model
 
     private var mThreadCounts = 1
     private var mPredictCounts = 1L
@@ -108,7 +114,7 @@ class MainActivity : Activity(), AnkoLogger {
 
     private fun init() {
         updateCurrentModel()
-        mModelLoader.setThreadCount(mThreadCounts)
+        mModel.setThreadCount(mThreadCounts)
         thread_counts.text = "$mThreadCounts"
         clearInfos()
         mCurrentPath = banana.absolutePath
@@ -126,12 +132,12 @@ class MainActivity : Activity(), AnkoLogger {
         }
         bt_load.setOnClickListener {
             isloaded = true
-            mModelLoader.load()
+            mModel.load()
         }
 
         bt_clear.setOnClickListener {
             isloaded = false
-            mModelLoader.clear()
+            mModel.clear()
             clearInfos()
         }
         ll_model.setOnClickListener {
@@ -160,7 +166,7 @@ class MainActivity : Activity(), AnkoLogger {
                     { _, _, which, _ ->
                         mThreadCounts = threadCountList[which]
                         info { "mThreadCounts=$mThreadCounts" }
-                        mModelLoader.setThreadCount(mThreadCounts)
+                        mModel.setThreadCount(mThreadCounts)
                         reloadModel()
                         thread_counts.text = "$mThreadCounts"
                         clearInfos()
@@ -178,7 +184,7 @@ class MainActivity : Activity(), AnkoLogger {
                     .input("设置预测次数", "10") { _, input ->
                         mPredictCounts = input.toString().toLong()
                         info { "mRunCount=$mPredictCounts" }
-                        mModelLoader.mTimes = mPredictCounts
+                        mModel.mTimes = mPredictCounts
                         reloadModel()
                         runcount_counts.text = "$mPredictCounts"
                     }.inputRange(1, 3)
@@ -187,14 +193,14 @@ class MainActivity : Activity(), AnkoLogger {
     }
 
     private fun reloadModel() {
-        mModelLoader.clear()
-        mModelLoader.load()
+        mModel.clear()
+        mModel.load()
         isloaded = true
     }
 
     private fun updateCurrentModel() {
         tv_modetext.text = mCurrentType.name
-        mModelLoader = LoaderFactory.buildLoader(mCurrentType)
+        mModel = ModelFactory.buildModel(mCurrentType)
     }
 
     private fun takePicFromCamera() {
@@ -271,7 +277,7 @@ class MainActivity : Activity(), AnkoLogger {
         Observable
                 .just(path)
                 .map {
-                    mModelLoader.getScaleBitmap(
+                    mModel.getScaleBitmap(
                             this@MainActivity,
                             this.mCurrentPath
                     )
@@ -290,22 +296,22 @@ class MainActivity : Activity(), AnkoLogger {
             Toast.makeText(this, "图片lost", Toast.LENGTH_SHORT).show()
             return
         }
-        if (mModelLoader.isbusy) {
+        if (mModel.isbusy) {
             Toast.makeText(this, "处于前一次操作中", Toast.LENGTH_SHORT).show()
             return
         }
-        mModelLoader.clearTimeList()
+        mModel.clearTimeList()
         tv_infos.text = "预处理数据,执行运算..."
-        mModelLoader.predictTimes(times)
+        mModel.predictTimes(times)
         Observable
                 .just(path)
                 .map {
                     if (!isloaded) {
                         isloaded = true
-                        mModelLoader.setThreadCount(mThreadCounts)
-                        mModelLoader.load()
+                        mModel.setThreadCount(mThreadCounts)
+                        mModel.load()
                     }
-                    mModelLoader.getScaleBitmap(
+                    mModel.getScaleBitmap(
                             this@MainActivity,
                             path
                     )
@@ -316,9 +322,9 @@ class MainActivity : Activity(), AnkoLogger {
                 .map { bitmap ->
                     var floatsTen: FloatArray? = null
                     for (i in 0..(times - 1)) {
-                        val floats = mModelLoader.predictImage(bitmap)
-                        val predictImageTime = mModelLoader.predictImageTime
-                        mModelLoader.timeList.add(predictImageTime)
+                        val floats = mModel.predictImage(bitmap)
+                        val predictImageTime = mModel.predictImageTime
+                        mModel.timeList.add(predictImageTime)
                         if (i == times / 2) {
                             floatsTen = floats
                         }
@@ -327,23 +333,23 @@ class MainActivity : Activity(), AnkoLogger {
                 }
                 .observeOn(AndroidSchedulers.mainThread())
                 .map { floatArrayBitmapPair ->
-                    mModelLoader.mixResult(show_image, floatArrayBitmapPair)
+                    mModel.mixResult(show_image, floatArrayBitmapPair)
                     floatArrayBitmapPair.second
                     floatArrayBitmapPair.first
                 }
                 .observeOn(Schedulers.io())
-                .map(mModelLoader::processInfo)
+                .map(mModel::processInfo)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(object : Observer<String?> {
                     override fun onSubscribe(d: Disposable) {
-                        mModelLoader.isbusy = true
+                        mModel.isbusy = true
                     }
 
                     override fun onNext(resultInfo: String) {
-                        tv_infomain.text = mModelLoader.getMainMsg()
+                        tv_infomain.text = mModel.getMainMsg()
                         tv_preinfos.text =
-                                mModelLoader.getDebugInfo() + "\n" +
-                                mModelLoader.timeInfo + "\n" +
+                                mModel.getDebugInfo() + "\n" +
+                                        mModel.timeInfo + "\n" +
                                 "点击查看结果"
 
                         tv_preinfos.setOnClickListener {
@@ -355,12 +361,12 @@ class MainActivity : Activity(), AnkoLogger {
                     }
 
                     override fun onComplete() {
-                        mModelLoader.isbusy = false
+                        mModel.isbusy = false
                         tv_infos.text = ""
                     }
 
                     override fun onError(e: Throwable) {
-                        mModelLoader.isbusy = false
+                        mModel.isbusy = false
                     }
                 })
     }
@@ -376,7 +382,7 @@ class MainActivity : Activity(), AnkoLogger {
         info { "pml clear" }
         // clear pml
         isloaded = false
-        mModelLoader.clear()
+        mModel.clear()
     }
 
     companion object {
