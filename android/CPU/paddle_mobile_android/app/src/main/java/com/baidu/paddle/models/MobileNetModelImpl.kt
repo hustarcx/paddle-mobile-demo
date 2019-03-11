@@ -9,10 +9,10 @@ import java.io.File
 
 
 /**
- * a sample for mobilenet classification
+ * XxxModelImpl用于描述一个模型的输入预处理, 模型加载 及预测等
  *
- * Created by xiebaiyuan on 2018/7/18.
- */
+ * 如 :MobileNetModelImpl 描述了一个modelnet分类模型的预处理,加载模型,对预处理好的图片执行预测等
+ **/
 class MobileNetModelImpl : Model() {
 
     /* b g r

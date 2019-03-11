@@ -49,11 +49,12 @@ import org.jetbrains.anko.info
 import java.io.File
 
 /**
- * 用于DEMO的界面, 以及创建 Model的描述类,与PaddleMobile交互无关,
+ * DEMO的界面, 创建与调用Model对象,
+ * 与Paddle交互过程, 关注 XxxModelImpl即可.
  *
- * 直接关注 XxxModelImpl即可.
+ * XxxModelImpl用于描述一个模型的输入预处理, 模型加载 及预测等
  *
- * XxxModelImpl 用于描述一个模型的 输入预处理, 模型加载 及执行预测等
+ * 如 :MobileNetModelImpl 描述了modelnet分类模型的预处理,加载模型,对预处理好的图片执行预测等
  */
 @SuppressLint("SetTextI18n")
 class MainActivity : Activity(), AnkoLogger {
