@@ -32,6 +32,6 @@ class MainActivity : Activity(){}
  * MobileNetModelImpl 描述了一个modelnet分类模型
  * 包含预处理,模型加载,预测过程等
  **/
-class MobileNetModelImpl : Model() {
+class MobileNetModelImpl : Model() {}
 ```
 
