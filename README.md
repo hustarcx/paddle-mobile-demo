@@ -12,7 +12,7 @@ a simple paddle-mobile-demo
 4. 目录中选择 paddle-mobile-demo/android/CPU/paddle_mobile_android/
 5. run and enjoy it
 
-### 主要类说明
+#### 主要类说明
 
 ``` java
  /**
